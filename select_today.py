@@ -22,6 +22,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CURRICULUM = os.path.join(HERE, "curriculum.json")
@@ -43,8 +44,13 @@ def load_entries():
     with open(ENTRIES) as f:
         for line in f:
             line = line.strip()
-            if line:
+            if not line:
+                continue
+            try:
                 entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                print(f"warning: skipping malformed entries.jsonl line: {line[:60]!r}",
+                      file=sys.stderr)
     return entries
 
 
@@ -89,9 +95,9 @@ def target_difficulty(prior):
 
 
 def ranked_picks(nodes, latest, today):
-    """Return (ordered list of picks, overdue_revisit_count) for one domain."""
+    """Return per-domain pools: overdue revisits, new topics, and fallback revisits."""
     covered = set(latest.keys())
-    picks = []
+    by_id = {n["id"]: n for n in nodes}
 
     overdue = sorted(
         (latest[n["id"]]["revisit_after"], n["id"]) for n in nodes
@@ -99,23 +105,41 @@ def ranked_picks(nodes, latest, today):
         and latest[n["id"]].get("revisit_after")
         and latest[n["id"]]["revisit_after"] <= today
     )
-    for _, tid in overdue:
-        node = next(n for n in nodes if n["id"] == tid)
-        picks.append({"kind": "revisit", "node": node, "prior": latest[tid]})
+    revisits = [{"kind": "revisit", "node": by_id[tid], "prior": latest[tid]}
+                for _, tid in overdue]
 
-    for n in nodes:  # new topics, curriculum order
-        if n.get("status") != "mined" and n["id"] not in covered:
-            picks.append({"kind": "new", "node": n, "prior": None})
+    new = [{"kind": "new", "node": n, "prior": None} for n in nodes
+           if n.get("status") != "mined" and n["id"] not in covered]
 
-    seen = {p["node"]["id"] for p in picks}
-    fallback = sorted((latest[n["id"]]["date"], n["id"]) for n in nodes
-                      if n.get("status") != "mined" and n["id"] in covered
-                      and n["id"] not in seen)
-    for _, tid in fallback:
-        node = next(n for n in nodes if n["id"] == tid)
-        picks.append({"kind": "revisit", "node": node, "prior": latest[tid]})
+    seen = {p["node"]["id"] for p in revisits} | {p["node"]["id"] for p in new}
+    fallback = [{"kind": "revisit", "node": by_id[tid], "prior": latest[tid]}
+                for _, tid in sorted((latest[n["id"]]["date"], n["id"]) for n in nodes
+                                     if n.get("status") != "mined" and n["id"] in covered
+                                     and n["id"] not in seen)]
 
-    return picks, len(overdue)
+    return {"revisits": revisits, "new": new, "fallback": fallback,
+            "overdue": len(overdue)}
+
+
+def compose(pools, n, new_first):
+    """Interleave revisits and new topics so new coverage never starves behind a
+    revisit backlog. `new_first` (date parity) alternates who leads, so the single-
+    problem-per-day case splits over time instead of always serving a revisit."""
+    rev, new, fb = list(pools["revisits"]), list(pools["new"]), list(pools["fallback"])
+    out, take_new = [], new_first
+    while len(out) < n and (rev or new):
+        if take_new and new:
+            out.append(new.pop(0))
+        elif not take_new and rev:
+            out.append(rev.pop(0))
+        elif new:
+            out.append(new.pop(0))
+        elif rev:
+            out.append(rev.pop(0))
+        take_new = not take_new
+    while len(out) < n and fb:   # only if revisits+new are exhausted
+        out.append(fb.pop(0))
+    return out
 
 
 def main():
@@ -133,11 +157,12 @@ def main():
     history = problems_by_topic(entries)
 
     counts = {"coding": max(0, args.coding), "design": max(0, args.design)}
+    new_first = dt.date.fromisoformat(today).toordinal() % 2 == 0
     chosen, overdue = {}, {}
     for dom in ("coding", "design"):
-        picks, n_over = ranked_picks(curr[dom], latest, today)
-        chosen[dom] = picks[:counts[dom]]
-        overdue[dom] = n_over
+        pools = ranked_picks(curr[dom], latest, today)
+        chosen[dom] = compose(pools, counts[dom], new_first)
+        overdue[dom] = pools["overdue"]
 
     if args.json:
         def slim(p):

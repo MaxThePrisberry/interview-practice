@@ -14,6 +14,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CURRICULUM = os.path.join(HERE, "curriculum.json")
@@ -41,8 +42,13 @@ def load_entries():
         with open(ENTRIES) as f:
             for line in f:
                 line = line.strip()
-                if line:
+                if not line:
+                    continue
+                try:
                     out.append(json.loads(line))
+                except json.JSONDecodeError:
+                    print(f"warning: skipping malformed entries.jsonl line: {line[:60]!r}",
+                          file=sys.stderr)
     out.sort(key=lambda e: e["date"])
     return out
 
@@ -53,39 +59,45 @@ def load_curriculum():
 
 
 def trend(values):
+    """Rolling: compare the most recent window's two halves, so recent gains aren't
+    diluted by ancient history as the ledger grows."""
     if len(values) < MIN_TREND_N:
         return (f"need {MIN_TREND_N}+ ({len(values)} so far)", None, None)
-    mid = len(values) // 2
-    a = sum(values[:mid]) / mid
-    b = sum(values[mid:]) / (len(values) - mid)
+    recent = values[-10:]            # only the last 10 count toward the trend
+    mid = len(recent) // 2
+    a = sum(recent[:mid]) / mid
+    b = sum(recent[mid:]) / (len(recent) - mid)
     delta = b - a
     lab = "IMPROVING" if delta > 0.25 else "REGRESSING" if delta < -0.25 else "flat"
     return (lab, a, b)
 
 
 def proactivity_section(entries):
-    graded = [e for e in entries if e.get("driver") in DRIVER_SCORE]
     print("PROACTIVITY (driver)  + candidate | ~ mixed | - interviewer   [trained axis]")
-    if not graded:
-        print("  none recorded yet")
-    else:
-        print("  oldest -> newest:  " +
-              "".join(DRIVER_GLYPH.get(e["driver"], "?") for e in graded))
-        lab, a, b = trend([DRIVER_SCORE[e["driver"]] for e in graded])
-        print(f"  trend: {lab}" + (f"  ({a:.2f} -> {b:.2f} on 0..2)" if a is not None else ""))
+    print("  (per domain — you can be proactive in one and reactive in the other)")
+    for dom in ("coding", "design"):
+        g = [e for e in entries if e.get("domain") == dom and e.get("driver") in DRIVER_SCORE]
+        if not g:
+            print(f"  {dom:<7}: none yet")
+            continue
+        tl = "".join(DRIVER_GLYPH.get(e["driver"], "?") for e in g)
+        lab, a, b = trend([DRIVER_SCORE[e["driver"]] for e in g])
+        extra = f"  ({a:.2f}->{b:.2f} on 0..2)" if a is not None else ""
+        print(f"  {dom:<7}: {tl}  trend {lab}{extra}")
 
-    sig = [e for e in entries if e.get("signal") in SIGNAL_SCORE]
-    print("\nSIGNAL (hire-bar)")
-    if not sig:
-        print("  none recorded yet")
-        return
-    counts = {}
-    for e in sig:
-        counts[e["signal"]] = counts.get(e["signal"], 0) + 1
-    print("  totals: " + ", ".join(f"{k}={counts[k]}" for k in SIGNAL_ORDER if k in counts))
-    lab, a, b = trend([SIGNAL_SCORE[e["signal"]] for e in sig])
-    print(f"  trend: {lab}" + (f"  ({a:.2f} -> {b:.2f} on 0=no-hire..4=strong-hire)"
-                               if a is not None else ""))
+    print("\nSIGNAL (hire-bar)  [per domain]")
+    for dom in ("coding", "design"):
+        g = [e for e in entries if e.get("domain") == dom and e.get("signal") in SIGNAL_SCORE]
+        if not g:
+            print(f"  {dom:<7}: none yet")
+            continue
+        counts = {}
+        for e in g:
+            counts[e["signal"]] = counts.get(e["signal"], 0) + 1
+        ct = ", ".join(f"{k}={counts[k]}" for k in SIGNAL_ORDER if k in counts)
+        lab, a, b = trend([SIGNAL_SCORE[e["signal"]] for e in g])
+        extra = f"  ({a:.2f}->{b:.2f} on 0..4)" if a is not None else ""
+        print(f"  {dom:<7}: {ct}  trend {lab}{extra}")
 
 
 def selfattack_section(entries):

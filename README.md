@@ -109,6 +109,10 @@ reactive pass resurfaces sooner than a clean one:
 - `weak` → `max(7, prior)` — interviewer-driven / no scoping / hinted / suboptimal: HOLD
 - `fail` → 3d — incorrect/unsolved, bottom signal, or `--verdict revisit`: tight loop
 
+Intervals are **capped at 90 days** so even a mastered topic recirculates. Selection
+**interleaves revisits and new topics** (alternating by date parity for the 1/day case) so
+new-topic coverage never starves behind a revisit backlog.
+
 **Difficulty auto-escalates**: a strong pass steps the next target up
 (easy→medium→hard), a fail steps it down, a weak pass holds. New topics start at medium.
 
@@ -123,9 +127,15 @@ The repo cleanly splits into two layers:
 
 Commands:
 - `./sync.sh push` — encrypt the ledger to every key in `recipients.txt`, commit
-  `ledger.age`, push. Run it after a session when you want an off-machine snapshot.
-- `./sync.sh restore` — decrypt `ledger.age` back into `entries.jsonl` + `sessions/`
-  (e.g. on a new machine). Needs your secret key.
+  `ledger.age`, push. Refuses if the remote is ahead (avoids divergent ledgers).
+- `./sync.sh pull` — fetch + fast-forward, then decrypt onto this machine. Run this
+  **before** a session on a different machine.
+- `./sync.sh restore` — decrypt the local `ledger.age` into `entries.jsonl` + `sessions/`
+  + `profile.md`. Needs your secret key.
+
+**Multi-machine:** `ledger.age` is one encrypted blob git can't merge, so use one active
+machine at a time: `pull` before a session elsewhere, `push` after. `push`'s staleness
+guard stops two machines from silently diverging.
 
 Keys:
 - Secret key: `~/.ssh/practice-age-key.txt` (`600`). **Also keep a copy off-machine

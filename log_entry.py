@@ -21,6 +21,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CURRICULUM = os.path.join(HERE, "curriculum.json")
@@ -50,6 +51,8 @@ ATTACK_CATEGORIES = {
 }
 
 FAIL_SIGNALS = {"no-hire", "lean-no"}
+# Cap so even a "mastered" topic recirculates instead of drifting to effectively never.
+MAX_INTERVAL = 90
 
 
 def valid_topic_ids():
@@ -67,7 +70,12 @@ def prior_interval(topic_id):
             line = line.strip()
             if not line:
                 continue
-            e = json.loads(line)
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                print(f"warning: skipping malformed entries.jsonl line: {line[:60]!r}",
+                      file=sys.stderr)
+                continue
             if e["topic_id"] == topic_id and (latest_date is None or e["date"] >= latest_date):
                 latest_date = e["date"]
                 interval = e.get("interval_days", 0) or 0
@@ -89,8 +97,8 @@ def schedule(cls, prior):
     if cls == "fail":
         return 3
     if cls == "weak":
-        return max(7, prior)
-    return max(7, prior * 2)
+        return min(MAX_INTERVAL, max(7, prior))
+    return min(MAX_INTERVAL, max(7, prior * 2))
 
 
 def parse_categories(raw, domain, label):
