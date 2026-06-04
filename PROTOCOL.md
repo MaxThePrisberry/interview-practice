@@ -29,6 +29,14 @@ For every problem:
 Do **not** pre-empt the self-attack by listing gaps first — that makes the agent a
 crutch instead of a scoreboard.
 
+## Information hygiene (don't spoil the test)
+The candidate must NOT be told, for the problem at hand: the topic/technique, the
+self-attack checklist, the past problems, or prior performance — recognizing the pattern
+and generating the edge cases is the skill under test. `select_today.py`'s default output
+is candidate-safe; the interviewer reads `--json` privately and poses ONLY the problem
+statement (difficulty may be shared). Naming a known classic reveals its technique, so
+prefer generated problems. After grading, anything goes.
+
 ## Self-attack taxonomy — a FLOOR, not a ceiling
 The reference categories (grounded in RUBRIC_SOURCES.md) are cues to make blind spots
 *measurable* — they are NOT the whole job. The senior skill is generating the failure

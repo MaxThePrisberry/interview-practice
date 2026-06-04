@@ -23,15 +23,17 @@ the hard parts stay invisible until prompted. Track it with `scoping`, `driver`,
 structured self-attack + `novel_attacks`, `pushback`, and `self_grade`.
 
 ## Steps
-1. Run `python3 ~/.claude/practice/select_today.py` (default 1 coding + 1 design). If the
-   candidate asked for more/fewer, pass `--coding N --design N` (0 to skip a domain). It
-   returns the picks, a **target difficulty** (auto-escalated), the **last drill** to prove
-   fixed, the **PAST PROBLEMS** already asked for each topic, and any catch-up overflow. Do
-   not override its choices. Generate at the target difficulty: a fresh variation for a
-   revisit; for a known classic (Blind 75 / NeetCode 150) name it and let the candidate open
-   the real problem; otherwise an ORIGINAL problem. **Your problem MUST be materially
-   different from every entry in PAST PROBLEMS** (different scenario/constraints, not a
-   reskin). Never scrape or reproduce LeetCode text.
+1. Run `python3 ~/.claude/practice/select_today.py --json` (add `--coding N --design N`,
+   0 to skip, if the candidate wants more/fewer). This returns the topic, target difficulty,
+   last drill, and PAST PROBLEMS **for your eyes only**. CRITICAL — do NOT reveal to the
+   candidate: the topic, the technique/pattern, the self-attack checklist, the past problems,
+   or prior performance. Recognizing the pattern and generating the edge cases is part of the
+   test. You MAY tell them the difficulty. Do not override the script's choices. Generate at
+   the target difficulty an ORIGINAL problem that is materially different from every PAST
+   PROBLEMS entry (different scenario/constraints, not a reskin), and pose ONLY the problem
+   statement — never name its type. (Naming a known classic reveals the technique, so prefer
+   generated; only name a classic if the candidate explicitly opts in.) Never scrape or
+   reproduce LeetCode text.
 
 2. For EACH problem, run the **flipped protocol** (see PROTOCOL.md):
    a. Candidate **scopes/clarifies first** (constraints, scale, edge conditions) → `scoping`.

@@ -28,11 +28,6 @@ CURRICULUM = os.path.join(HERE, "curriculum.json")
 ENTRIES = os.path.join(HERE, "entries.jsonl")
 
 LEVELS = ["easy", "medium", "hard"]
-CHECKLISTS = {
-    "coding": "boundary / numeric / duplicates / ordering / size-perf / structure / [concurrency]",
-    "design": ("hot-key / dependency-failure / cascading / consistency / latency / "
-               "backpressure / durability / idempotency / scale-10x / cost"),
-}
 
 
 def load_curriculum():
@@ -123,32 +118,6 @@ def ranked_picks(nodes, latest, today):
     return picks, len(overdue)
 
 
-def render(domain, pick, history):
-    node = pick["node"]
-    tag = "REVISIT" if pick["kind"] == "revisit" else "NEW"
-    diff = target_difficulty(pick["prior"])
-    lines = [f"  {domain.upper()}  [{tag}]  {node['topic']}  (id: {node['id']})",
-             f"    target difficulty: {diff.upper()}"]
-    if pick["kind"] == "revisit":
-        p = pick["prior"]
-        lines.append(f"    last seen {p['date']} | {entry_class(p)} pass | "
-                     f"driver {p.get('driver','?')} | signal {p.get('signal','?')} | "
-                     f"was {p.get('difficulty','?')}")
-        if p.get("drill"):
-            lines.append(f"    >> LAST DRILL (prove you fixed it): {p['drill']}")
-        if p.get("notes"):
-            lines.append(f"    prior notes: {p['notes']}")
-    past = history.get(node["id"], [])
-    if past:
-        lines.append(f"    PAST PROBLEMS ({len(past)}) — do NOT repeat; make the new one materially different:")
-        for q in past[-6:]:
-            lines.append(f"      - [{q['date']}] {q['problem']}")
-        if len(past) > 6:
-            lines.append(f"      ... and {len(past) - 6} earlier")
-    lines.append(f"    self-attack checklist (floor, not ceiling): {CHECKLISTS[domain]}")
-    return "\n".join(lines)
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--coding", type=int, default=1, help="how many coding problems (0 to skip)")
@@ -182,20 +151,24 @@ def main():
                           "overdue": overdue}, indent=2))
         return
 
-    print(f"=== TODAY'S PICKS  ({today}) ===")
+    # CANDIDATE-SAFE output: difficulty only. The topic/technique, checklist, past
+    # problems, and prior performance are deliberately withheld — recognizing the pattern
+    # and generating the edge cases is part of what's being tested. Interviewer uses --json.
+    print(f"=== TODAY ({today}) ===")
     for dom in ("coding", "design"):
         if counts[dom] == 0:
             continue
-        extra = ""
-        if overdue[dom] > len(chosen[dom]):
-            extra = f"   (catch-up: {overdue[dom]} {dom} revisits overdue; showing {len(chosen[dom])})"
-        if extra:
-            print(extra.strip())
-        for p in chosen[dom]:
-            print(render(dom, p, history))
-    print("\nFlipped protocol: candidate scopes/clarifies FIRST -> solves out loud -> "
-          "candidate's OWN teardown (find cases BEYOND the checklist) -> agent grades. "
-          "Do NOT list the gaps before the self-attack.")
+        picks = chosen[dom]
+        if not picks:
+            print(f"  {dom}: (no eligible topic — check curriculum.json)")
+            continue
+        diffs = ", ".join(target_difficulty(p["prior"]).upper() for p in picks)
+        print(f"  {dom.upper()}: {len(picks)} problem(s) — difficulty: {diffs}")
+        if overdue[dom] > len(picks):
+            print(f"    (catch-up: {overdue[dom]} {dom} revisits overdue)")
+    print("\nInterviewer: run with --json for topic/past-problems and run the flipped protocol.")
+    print("Do NOT reveal the topic, technique, self-attack checklist, or past problems to the")
+    print("candidate — recognizing the pattern is part of the test. Pose ONLY the problem.")
 
 
 if __name__ == "__main__":
