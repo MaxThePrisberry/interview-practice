@@ -138,13 +138,14 @@ Keys:
 
 ## Daily flow (what /practice does)
 1. `python3 select_today.py` → today's picks, target difficulty, last drill to prove fixed.
-2. Run each in the **flipped protocol**: candidate scopes/clarifies first → solves out
-   loud → candidate's OWN teardown → agent probes for resilience → agent grades. Never
-   list the gaps before the self-attack.
-3. `python3 log_entry.py ...` once per problem (appends + schedules a quality-aware revisit).
-4. Write `sessions/YYYY-MM-DD.md` with the narrative.
-5. `git add -A && git commit` the session; `./sync.sh push` for an encrypted backup.
-6. Optional: `python3 report.py` for the trend + blind-spot readout.
+2. Work the problems **one at a time**, each in the **flipped protocol**: scope/clarify
+   first → solve out loud → your OWN teardown → agent probes for resilience → agent grades
+   **and teaches the optimal approach**, then logs it. Never lists the gaps before the
+   self-attack.
+3. After grading, the agent **stops and waits** — this is your time to ask about anything you
+   didn't understand. The next problem starts only when you say you're ready.
+4. After the last problem: `sessions/YYYY-MM-DD.md` narrative, `git commit`, optional
+   `./sync.sh push`, and an optional `report.py` readout.
 
 ## License
 No license — this is a personal project (all rights reserved). It's public so you can read

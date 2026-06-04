@@ -22,40 +22,38 @@ hints.
 the hard parts stay invisible until prompted. Track it with `scoping`, `driver`, the
 structured self-attack + `novel_attacks`, `pushback`, and `self_grade`.
 
-## Steps
-1. Run `python3 ~/.claude/practice/select_today.py --json` (add `--coding N --design N`,
-   0 to skip, if the candidate wants more/fewer). This returns the topic, target difficulty,
-   last drill, and PAST PROBLEMS **for your eyes only**. CRITICAL — do NOT reveal to the
-   candidate: the topic, the technique/pattern, the self-attack checklist, the past problems,
-   or prior performance. Recognizing the pattern and generating the edge cases is part of the
-   test. You MAY tell them the difficulty. Do not override the script's choices. Generate at
-   the target difficulty an ORIGINAL problem that is materially different from every PAST
-   PROBLEMS entry (different scenario/constraints, not a reskin), and pose ONLY the problem
-   statement — never name its type. (Naming a known classic reveals the technique, so prefer
-   generated; only name a classic if the candidate explicitly opts in.) Never scrape or
-   reproduce LeetCode text.
+## Step 1 — pick today's problems
+Run `python3 ~/.claude/practice/select_today.py --json` (add `--coding N --design N`,
+0 to skip, if the candidate wants more/fewer). This returns the topic, target difficulty,
+last drill, and PAST PROBLEMS **for your eyes only**. CRITICAL — do NOT reveal to the
+candidate: the topic, the technique/pattern, the self-attack checklist, the past problems,
+or prior performance. Recognizing the pattern and generating the edge cases is part of the
+test. You MAY tell them the difficulty. Do not override the script's choices.
 
-2. For EACH problem, run the **flipped protocol** (see PROTOCOL.md):
-   a. Candidate **scopes/clarifies first** (constraints, scale, edge conditions) → `scoping`.
-      Then solves, thinking out loud; note if they state complexity unprompted → `complexity`.
-      HINTS (balanced): if genuinely stuck on the core solution, let them struggle a real
-      beat, then give the MINIMAL graduated hint — never the answer — and record it in
-      `aided`, docking `signal`.
-   b. **Before any critique**, candidate does their OWN teardown. The reference taxonomy
-      (PROTOCOL.md) is a FLOOR — push them to find cases BEYOND it, but nudge CONTENT-FREE
-      ("what else could break?"); NEVER name a category. Any case you have to name counts as
-      `--missed`, not caught. Do NOT list gaps first.
-   c. **Before revealing your verdict**, ask the candidate to predict their own signal →
-      `self_grade`. Then probe a correct answer at least once to test resilience → `pushback`.
-   d. Grade independently and honestly:
-      - `--hit`/`--missed`: applicable reference categories caught vs missed; `--novel`:
-        count of relevant OFF-LIST cases they found (the real antagonism signal).
-      - `solution` + `aided` + `complexity` + `code-quality` — the WHAT.
-      - `scoping`, `driver`, `pushback` — the HOW.
-      - `signal` (your hire-bar verdict) and `self-grade` (their prediction from step c).
-      - `drill`: the single most important thing to fix next time.
+## Step 2 — work the problems ONE AT A TIME
+Run the selector's problems in order (e.g. coding, then design). For **each** problem, do
+the full cycle a–f below, then **STOP and wait**. Never pose the next problem in the same
+turn as grading the previous one.
 
-3. Log each problem (append-only, auto-schedules a quality-aware revisit):
+a. **Pose** ONLY the problem statement (difficulty ok), generated at the target difficulty
+   and materially different from every PAST PROBLEMS entry — never name its type. (Naming a
+   known classic reveals the technique, so prefer generated; only name a classic if the
+   candidate explicitly opts in.) Never scrape or reproduce LeetCode text.
+b. Candidate **scopes/clarifies first** → `scoping`. Then solves out loud; note if they
+   state complexity unprompted → `complexity`. HINTS (balanced): if genuinely stuck on the
+   core, let them struggle a beat, then a MINIMAL graduated hint — never the answer —
+   recorded in `aided`, docking `signal`.
+c. **Before any critique**, candidate does their OWN teardown. The taxonomy (PROTOCOL.md) is
+   a FLOOR — nudge CONTENT-FREE ("what else could break?"), NEVER name a category; any case
+   you have to name counts as `--missed`. Do NOT list gaps first.
+d. **Before revealing your verdict**, ask them to predict their own signal → `self_grade`.
+   Probe a correct answer at least once → `pushback`.
+e. **Grade AND TEACH.** Give the honest grades, then actually teach: explain the OPTIMAL
+   approach and why, what they missed and the idea behind it, the key tradeoffs/complexity.
+   This is the learning moment — be substantive; never breeze past it.
+   Grades: `--hit`/`--missed` + `--novel`; `solution`+`aided`+`complexity`+`code-quality`
+   (WHAT); `scoping`+`driver`+`pushback` (HOW); `signal` + `self-grade`; `drill` (one thing).
+f. **Log it**, then **STOP — end your turn**:
    ```
    python3 ~/.claude/practice/log_entry.py \
      --domain <coding|design> --topic <id> --difficulty <easy|medium|hard> --problem "..." \
@@ -67,16 +65,19 @@ structured self-attack + `novel_attacks`, `pushback`, and `self_grade`.
      --signal <no-hire|lean-no|lean-hire|hire|strong-hire> --self-grade <same scale|unknown> \
      --drill "..." --notes "..."
    ```
-   (Add `--verdict revisit` only to force an early revisit beyond what the signals imply.)
-   `--problem` must be a 1-2 sentence statement of what you actually posed — it resurfaces
-   as PAST PROBLEMS next time to drive repeat-avoidance, so make it specific.
+   (`--verdict revisit` only to force an early revisit. `--problem` = 1-2 sentence statement
+   of what you posed; it resurfaces as PAST PROBLEMS for repeat-avoidance, so be specific.)
 
-4. Write `~/.claude/practice/sessions/<YYYY-MM-DD>.md` with the narrative: problems,
-   caught vs missed, the grades, and the ONE thing to drill next.
+   **This stop is mandatory and is the candidate's time to LEARN.** After logging, explicitly
+   invite them to ask about anything they didn't understand — the concept, the optimal
+   strategy, why their solution fell short, an edge case, a tradeoff. Answer and teach across
+   as many turns as they want. Do **NOT** pose the next problem until the candidate
+   **explicitly confirms** they're ready to move on. Being told you're wrong and then breezed
+   past defeats the point.
 
-5. Commit the session: `cd ~/.claude/practice && git add -A && git commit -m "practice: <date> — <topics>"`.
-   To back up off-machine (encrypted), run `./sync.sh push`.
-
-6. End with a short readout: signal + difficulty, solution/aided, self-attack coverage
-   (which categories missed), scoping/driver/pushback, and the single thing to drill.
-   Optionally run `python3 ~/.claude/practice/report.py`.
+## Step 3 — wrap up (only after the LAST problem's learning phase)
+- Write `~/.claude/practice/sessions/<YYYY-MM-DD>.md`: problems, caught vs missed, grades,
+  and the one thing to drill.
+- Commit: `cd ~/.claude/practice && git add -A && git commit -m "practice: <date> — <topics>"`.
+  Optionally `./sync.sh push` for an encrypted backup.
+- Give a short closing readout for the session; optionally run `python3 ~/.claude/practice/report.py`.
