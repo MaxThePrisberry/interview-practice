@@ -1,0 +1,6 @@
+# age PUBLIC keys that can decrypt the encrypted ledger (ledger.age).
+# Copy this to recipients.txt (gitignored) and replace the placeholder below with YOUR
+# age public key:   age-keygen -y ~/.ssh/practice-age-key.txt
+# Public keys are safe to share; add more lines to grant others read access. recipients.txt
+# is gitignored so the public repo never ships a real key.
+age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxplaceholder00

@@ -1,0 +1,14 @@
+# Personal ledger: plaintext is NEVER committed. Only the encrypted
+# ledger.age (produced by ./sync.sh push) is tracked and pushed.
+entries.jsonl
+sessions/
+
+# Per-user instance config (templates committed as *.example). Keeps the public
+# repo generic and your profile/keys private.
+profile.md
+recipients.txt
+
+# Safety net: never commit an age secret key, wherever it lands.
+*age-key*
+key.txt
+*.key

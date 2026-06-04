@@ -1,0 +1,37 @@
+{
+  "_comment": "The syllabus AS DATA. Stable ids never change (entries reference them). status: 'uncovered' = never done; 'mined' = deliberately exhausted, excluded from auto-pick/auto-revisit (revisit only on purpose). Coverage is otherwise DERIVED from entries.jsonl, not stored here. Hand-edit freely to add topics or flag a topic 'mined'.",
+  "coding": [
+    { "id": "arrays-two-pointers", "topic": "Arrays / two-pointers", "status": "uncovered" },
+    { "id": "hashing", "topic": "Hashing", "status": "uncovered" },
+    { "id": "sliding-window", "topic": "Sliding window", "status": "uncovered" },
+    { "id": "stacks-queues", "topic": "Stacks & queues", "status": "uncovered" },
+    { "id": "linked-lists", "topic": "Linked lists", "status": "uncovered" },
+    { "id": "binary-search", "topic": "Binary search", "status": "uncovered" },
+    { "id": "trees-bst", "topic": "Trees & BST", "status": "uncovered" },
+    { "id": "graphs-traversal", "topic": "Graphs: BFS / DFS traversal", "status": "uncovered" },
+    { "id": "graphs-topo-sort", "topic": "Graphs: topological sort", "status": "uncovered" },
+    { "id": "graphs-union-find", "topic": "Graphs: union-find / DSU", "status": "uncovered" },
+    { "id": "heaps-priority-queues", "topic": "Heaps / priority queues", "status": "uncovered" },
+    { "id": "intervals", "topic": "Intervals", "status": "uncovered" },
+    { "id": "tries", "topic": "Tries", "status": "uncovered" },
+    { "id": "backtracking", "topic": "Backtracking", "status": "uncovered" },
+    { "id": "dynamic-programming", "topic": "Dynamic programming", "status": "uncovered" },
+    { "id": "bit-manipulation", "topic": "Bit manipulation", "status": "uncovered" },
+    { "id": "design-structures", "topic": "Design-y structures (LRU, etc.)", "status": "uncovered" }
+  ],
+  "design": [
+    { "id": "rate-limiter", "topic": "Rate limiter", "status": "uncovered" },
+    { "id": "url-shortener", "topic": "URL shortener", "status": "uncovered" },
+    { "id": "news-feed", "topic": "News feed / timeline", "status": "uncovered" },
+    { "id": "chat-messaging", "topic": "Chat & messaging", "status": "uncovered" },
+    { "id": "search-typeahead", "topic": "Search typeahead", "status": "uncovered" },
+    { "id": "notification-fanout", "topic": "Notification fan-out", "status": "uncovered" },
+    { "id": "distributed-cache", "topic": "Distributed cache", "status": "uncovered" },
+    { "id": "idempotent-payments", "topic": "Idempotent payments", "status": "uncovered" },
+    { "id": "file-storage-cdn", "topic": "File storage / CDN", "status": "uncovered" },
+    { "id": "leaderboard", "topic": "Leaderboard", "status": "uncovered" },
+    { "id": "geo-proximity", "topic": "Geo / proximity search", "status": "uncovered" },
+    { "id": "analytics-ingestion", "topic": "Analytics ingestion", "status": "uncovered" },
+    { "id": "job-scheduler", "topic": "Distributed job scheduler", "status": "uncovered" }
+  ]
+}
